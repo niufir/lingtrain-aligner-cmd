@@ -9,6 +9,8 @@ import torch
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModel
 
+from src.lingtrain_aligner.Settings import GetCachingPath_HurringFace
+
 if torch.cuda.is_available():
     device = torch.device("cuda")
 else:
@@ -37,7 +39,7 @@ class SentenceTransformersModel:
         else:
             print("Loading distiluse-base-multilingual-cased-v2 model from Internet.")
             _model = SentenceTransformer(
-                "distiluse-base-multilingual-cased-v2", cache_folder="./models_cache"
+                "distiluse-base-multilingual-cased-v2", cache_folder=GetCachingPath_HurringFace()
             )
         return _model
 
@@ -90,7 +92,7 @@ class SentenceTransformersModelLaBSE:
             _model._target_device = device  # patch
         else:
             print("Loading LaBSE model from Internet.")
-            _model = SentenceTransformer("LaBSE", cache_folder="./models_cache")
+            _model = SentenceTransformer("LaBSE", cache_folder=GetCachingPath_HurringFace())
         return _model
 
     def embed(self, lines, batch_size, normalize_embeddings, show_progress_bar, lang):
@@ -114,7 +116,7 @@ class RuBertTinyModel:
         else:
             print("Loading rubert tiny model from Internet.")
             _model = AutoModel.from_pretrained(
-                "cointegrated/rubert-tiny2", cache_dir="./models_cache"
+                "cointegrated/rubert-tiny2", cache_dir=GetCachingPath_HurringFace()
             )
         return _model
 
@@ -122,7 +124,7 @@ class RuBertTinyModel:
     def tokenizer(self):
         print("Loading rubert tiny tokenizer from Internet.")
         _tokenizer = AutoTokenizer.from_pretrained(
-            "cointegrated/rubert-tiny2", cache_dir="./models_cache"
+            "cointegrated/rubert-tiny2", cache_dir=GetCachingPath_HurringFace()
         )
         return _tokenizer
 
@@ -150,7 +152,7 @@ class SonarModel:
         else:
             print(f"Loading SONAR model from Internet. Device: {device}")
             _model = M2M100Encoder.from_pretrained(
-                "cointegrated/SONAR_200_text_encoder", cache_dir="./models_cache"
+                "cointegrated/SONAR_200_text_encoder", cache_dir=GetCachingPath_HurringFace()
             ).to(device)
         return _model
 
@@ -158,7 +160,7 @@ class SonarModel:
     def tokenizer(self):
         print("Loading SONAR tokenizer from Internet.")
         _tokenizer = AutoTokenizer.from_pretrained(
-            "cointegrated/SONAR_200_text_encoder", cache_dir="./models_cache"
+            "cointegrated/SONAR_200_text_encoder", cache_dir=GetCachingPath_HurringFace()
         )
         return _tokenizer
 

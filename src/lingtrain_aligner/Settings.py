@@ -63,7 +63,8 @@ class ConfigApp:
                 config_data = json.load(f)
                 if "model_name" in config_data:
                     self.m_Model_Name = config_data["model_name"]
-                    self.init_once()
+                if "path_NN_cache_directory" in config_data:
+                    self.SetCachingPath_HurringFace(config_data["path_NN_cache_directory"])
         return
 
     def SetCachingPath_HurringFace(self, path:str):
@@ -72,6 +73,9 @@ class ConfigApp:
         self.m_path_caching_hurringface = path
         os.environ['TRANSFORMERS_CACHE'] = self.m_path_caching_hurringface
         return
+
+    def GetCachingPath_HurringFace(self):
+        return self.m_path_caching_hurringface
 
     def init_once(self):
         self.readJson()
@@ -93,6 +97,8 @@ class ConfigApp:
 def GetAppSettings()->ConfigApp:
     return ConfigApp()
 
+def GetCachingPath_HurringFace():
+        return GetAppSettings().m_path_caching_hurringface
 
     
 
