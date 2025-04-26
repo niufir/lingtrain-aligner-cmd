@@ -4,11 +4,12 @@ from tqdm import tqdm
 
 from src.AlignerImproved.CHelperClearnPrologs import CHelper_CleanerTexts
 from src.AlignerImproved.LoggerHelper import SingletonLoggerHelper
-from src.AlignerImproved.MainAligner import BookSplitSection
+
 from src.AlignerImproved.ParagraphMaker import ends_with_roman_numeral, isChapterPresent, calcMedDist
+from src.AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
 
 gLogger = SingletonLoggerHelper()
-class HelperBookSplitter:
+class CHelperBookSplitter:
 
     @staticmethod
     def validateBlockSize(size_bk_from:int, size_bk_to:int, kf_from_to:float)->bool:
@@ -18,7 +19,7 @@ class HelperBookSplitter:
 
     @staticmethod
     def splitBookRawText(booksection:BookSplitSection):
-        HelperBookSplitter.gLogger.info('Call split book from small parts, using find similarity' + '\n' +'\t'*13 + f'ix_to:{booksection.ix_to}')
+        CHelperBookSplitter.gLogger.info('Call split book from small parts, using find similarity' + '\n' + '\t' * 13 + f'ix_to:{booksection.ix_to}')
         start_pos = 0
         start_pos_small_step=0
         start_pos2 = 0
@@ -93,7 +94,7 @@ class HelperBookSplitter:
 
     @staticmethod
     def split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to):
-        chapter_indexes_1, chapter_indexes_2 = HelperBookSplitter.findChapters(splitted_from, splitted_to)
+        chapter_indexes_1, chapter_indexes_2 = CHelperBookSplitter.findChapters(splitted_from, splitted_to)
         indexMapping = {}
         for ix in tqdm(chapter_indexes_1[1:]):
             dist_store = []
@@ -152,18 +153,18 @@ class HelperBookSplitter:
         assert len(emb2) == len(splitted_to)
         assert len(emb_1) == len(splitted_from)
 
-        books_splits = HelperBookSplitter.split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to)
+        books_splits = CHelperBookSplitter.split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to)
 
         gLogger.logToSummary('Using Paragraph Splitting - Sizes splitted block (using paragraph):')
         [gLogger.logToSummary('\t size block in KB ' + str(bk.sizeText_From_kb())) for bk in books_splits]
 
         books_splites_res:typing.List[BookSplitSection] = []
-        HelperBookSplitter.printBookSplitItems(books_splits)
+        CHelperBookSplitter.printBookSplitItems(books_splits)
         for cur_sp_block in books_splits:
             if cur_sp_block.sizeText_From()<1e5:
                 books_splites_res.append(cur_sp_block)
                 continue
-            raw_split_re = HelperBookSplitter.splitBookRawText( cur_sp_block )
+            raw_split_re = CHelperBookSplitter.splitBookRawText(cur_sp_block)
             books_splites_res+=raw_split_re
 
         books_splites_res = BookSplitSection.CombineSmallPartsTogether(books_splites_res)
@@ -171,7 +172,7 @@ class HelperBookSplitter:
         print(f'Found {len(books_splites_res)} splits for book')
 
         # print(f'Find raw split from_text {start_pos}:{same_text_res.indx_txt_main} and to_text {start_pos2}:{same_text_res.indx_txt_opposite}')
-        HelperBookSplitter.printBookSplitItems(books_splites_res)
+        CHelperBookSplitter.printBookSplitItems(books_splites_res)
         return books_splites_res
 
     @staticmethod

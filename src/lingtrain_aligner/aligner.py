@@ -18,8 +18,10 @@ from scipy import spatial
 from sentence_transformers import SentenceTransformer
 import subprocess
 
+from src.AlignerImproved.ParagraphMaker import calculate_sha1
 from src.lingtrain_aligner.CacheFolderSettings import GetDefModelName
 from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
+from src.lingtrain_aligner.Settings import GetCachingPath_HurringFace
 
 to_delete = re.compile(
     r'[」「@#$%^&»«“”„‟"\x1a⓪①②③④⑤⑥⑦⑧⑨⑩⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽*\(\)\[\]\n\/\-\:•＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》【】〔〕〖〗〘〙〜〟〰〾〿–—‘’‛‧﹏〉]+'
@@ -28,6 +30,28 @@ to_delete = re.compile(
 
 custom_model_name, custom_model = "", None
 
+
+def updateEmbStore(embStore:typing.Dict, lines_to_batch:typing.List[str],
+                   model_name:str,
+                   embed_batch_size:int,
+                   normalize_embeddings:bool,
+                   model):
+    if not embStore: return
+    if len(lines_to_batch) == 0: return
+    vectors2 = [
+        *get_line_vectors(
+            lines_to_batch,
+            model_name,
+            embed_batch_size,
+            normalize_embeddings,
+            True,
+            model,
+        )
+    ]
+    for l, emb4line in zip( lines_to_batch, vectors2 ):
+        lhash = calculate_sha1( HelperParagraphSpliter.ClearTextFromParagrapSplitter(l) )
+        embStore[lhash] = emb4line
+    return
 
 def get_line_vectors(
     lines,
@@ -45,7 +69,7 @@ def get_line_vectors(
             logging.info(f"Model name is provided. model_name={model_name}.")
             logging.info(f"Trying to load as a SentenceTransformers model.")
             custom_model = SentenceTransformer(
-                model_name, cache_folder="./models_cache"
+                model_name, cache_folder=GetCachingPath_HurringFace()
             )
             custom_model_name = model_name
         model = custom_model
@@ -253,6 +277,7 @@ def process_batch(
     lang_emb_to="ell_Grek",
     store_embeddings=False,
     use_api=False,
+    emb_store = None
 ):
     """Do the actual alignment process logic"""
     # try:
@@ -260,44 +285,75 @@ def process_batch(
 
     # vectors1 = [*get_line_vectors(clean_lines(lines_from_batch), model_name, embed_batch_size, normalize_embeddings, show_progress_bar)]
     # vectors2 = [*get_line_vectors(clean_lines(lines_to_batch), model_name, embed_batch_size, normalize_embeddings, show_progress_bar)]
+    if emb_store is None:
+        vectors1 = update_embeddings(
+            db_path,
+            direction="from",
+            ids=line_ids_from,
+            is_proxy=use_proxy_from,
+            model_name=model_name,
+            embed_batch_size=embed_batch_size,
+            normalize_embeddings=normalize_embeddings,
+            show_progress_bar=show_progress_bar,
+            model=model,
+            lang_emb_from=lang_emb_from,
+            store_embeddings=store_embeddings,
+            use_api=use_api,
+        )
 
-    vectors1 = update_embeddings(
-        db_path,
-        direction="from",
-        ids=line_ids_from,
-        is_proxy=use_proxy_from,
-        model_name=model_name,
-        embed_batch_size=embed_batch_size,
-        normalize_embeddings=normalize_embeddings,
-        show_progress_bar=show_progress_bar,
-        model=model,
-        lang_emb_from=lang_emb_from,
-        store_embeddings=store_embeddings,
-        use_api=use_api,
-    )
-    
-    vectors2 = update_embeddings(
-        db_path,
-        direction="to",
-        ids=line_ids_to,
-        is_proxy=use_proxy_to,
-        model_name=model_name,
-        embed_batch_size=embed_batch_size,
-        normalize_embeddings=normalize_embeddings,
-        show_progress_bar=show_progress_bar,
-        model=model,
-        lang_emb_from=lang_emb_to,
-        store_embeddings=store_embeddings,
-        use_api=use_api,
-    )
+        vectors2 = update_embeddings(
+            db_path,
+            direction="to",
+            ids=line_ids_to,
+            is_proxy=use_proxy_to,
+            model_name=model_name,
+            embed_batch_size=embed_batch_size,
+            normalize_embeddings=normalize_embeddings,
+            show_progress_bar=show_progress_bar,
+            model=model,
+            lang_emb_from=lang_emb_to,
+            store_embeddings=store_embeddings,
+            use_api=use_api,
+        )
 
-    if store_embeddings:
-        print("Get embeddings from the database")
-        vectors1 = helper.get_embeddings(db_path, "from", line_ids_from, use_proxy_from)
-        vectors1 = [x[1] for x in vectors1]
+        if store_embeddings:
+            print("Get embeddings from the database")
+            vectors1 = helper.get_embeddings(db_path, "from", line_ids_from, use_proxy_from)
+            vectors1 = [x[1] for x in vectors1]
 
-        vectors2 = helper.get_embeddings(db_path, "to", line_ids_to, use_proxy_to)
-        vectors2 = [x[1] for x in vectors2]
+            vectors2 = helper.get_embeddings(db_path, "to", line_ids_to, use_proxy_to)
+            vectors2 = [x[1] for x in vectors2]
+    else:
+        vectors1 = []
+        lines2cacl_emb = [l for l in lines_from_batch if calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(l)) not in emb_store]
+        print('len(lines_to_batch)', len(lines2cacl_emb))
+        updateEmbStore(emb_store, lines2cacl_emb, model_name, embed_batch_size, normalize_embeddings, model)
+
+        for l in lines_from_batch:
+            hash = calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(l))
+            if hash in emb_store:
+                emb = emb_store[hash]
+                vectors1.append(emb)
+            else:
+                # vectors1 = calcVector1()
+
+                break
+
+        vectors2 = []
+        lines2cacl_emb = [l for l in lines_to_batch if calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(l)) not in emb_store]
+        print('len(lines_to_batch)', len(lines2cacl_emb))
+        updateEmbStore(emb_store, lines2cacl_emb, model_name, embed_batch_size, normalize_embeddings, model)
+
+        for l in lines_to_batch:
+            lhash = calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(l))
+            if lhash in emb_store:
+                emb = emb_store[lhash]
+                vectors2.append(emb)
+            else:
+                print(l)
+                break;
+        assert len(vectors2) == len(lines_to_batch)
+        assert len(vectors1) == len(lines_from_batch)
 
     logging.debug(
         f"Batch {batch_number}. Vectors calculated. len(vectors1)={len(vectors1)}. len(vectors2)={len(vectors2)}."
@@ -341,6 +397,8 @@ def process_batch(
         texts_to.append((f"[{id_to+1}]", id_to + 1, text_to.strip()))
 
     return texts_from, texts_to
+
+
 
     # except Exception as e:
     #     logging.error(e, exc_info=True)
@@ -461,6 +519,7 @@ def align_db(
     lang_emb_to="ell_Grek",
     store_embeddings=False,
     use_api=False,
+    emb_store:typing.Dict[str,typing.List] = None,
 ):
     result = []
     if use_segments:
@@ -554,6 +613,7 @@ def align_db(
             lang_emb_to=lang_emb_to,
             store_embeddings=store_embeddings,
             use_api=use_api,
+            emb_store=emb_store,
         )
         result.append((batch_id, texts_from, texts_to, shift, window))
         count += 1

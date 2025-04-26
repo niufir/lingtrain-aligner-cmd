@@ -209,3 +209,26 @@ def restore_batch_info(m):
                 x.append(j + 1)
                 y.append(i + 1)
     return y, x
+
+def validHlp_IdsMergeStore(  db_path):
+    index = helper.get_clear_flatten_doc_index(db_path)
+    xs, ys = [], []
+    for i, ix in enumerate(index):
+        from_ids, to_ids = json.loads(ix[1]), json.loads(ix[3])
+        for from_id in from_ids:
+            for to_id in to_ids:
+                xs.append(from_id)
+                ys.append(to_id)
+    xs_max = max(xs)
+    yx_max = max(ys)
+    xs_rel_dst = [ float(i)/float(xs_max) for i in xs ]
+    ys_rel_dst = [ float(i)/float(yx_max) for i in ys ]
+    error = 0
+    errors_log = []
+    for index,(xitem, yitem, x_indx, y_indx) in enumerate( zip(xs_rel_dst, ys_rel_dst, xs, ys)):
+        dist = abs(xitem - yitem)
+        if dist>0.1:
+            error+=1
+            errors_log.append((x_indx, y_indx))
+
+    return float(error)/len(xs) * 100, errors_log

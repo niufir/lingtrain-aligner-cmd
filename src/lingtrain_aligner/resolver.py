@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+import typing
 from collections import defaultdict
 
 import more_itertools as mit
@@ -12,6 +13,9 @@ import logging
 import copy
 
 import numpy as np
+
+from src.AlignerImproved.ParagraphMaker import calculate_sha1
+from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 
 
 def prepare_index(db_path, batch_id=-1, index=None):
@@ -202,6 +206,7 @@ def squash_conflict(
     lang_emb_to="ell_Grek",
     use_aggregation=False,
     aggregation_method="weighted_average",
+    emb_store=None
 ):
     """Find the best solution"""
     splitted_from, proxy_from = helper.get_splitted_from_by_id_range(
@@ -230,6 +235,7 @@ def squash_conflict(
         use_proxy_to=use_proxy_to,
         use_aggregation=use_aggregation,
         aggregation_method=aggregation_method,
+        emb_store=emb_store
     )
 
     unique_sims = get_unique_sims(unique_variants, vecs_from, vecs_to)
@@ -413,6 +419,7 @@ def resolve_all_conflicts(
     lang_emb_to="ell_Grek",
     use_aggregation=False,
     aggregation_method="weighted_average",
+    emb_store=None
 ):
     """Apply all the solutions to the database"""
     for _, conflict in enumerate(tqdm(conflicts[::-1])):
@@ -428,6 +435,7 @@ def resolve_all_conflicts(
             lang_emb_to,
             use_aggregation,
             aggregation_method,
+            emb_store=emb_store
         )
         resolve_conflict(db_path, conflict, solution, lines_from, lines_to, show_logs)
 
@@ -584,6 +592,7 @@ def get_vectors(
     use_proxy_to=False,
     use_aggregation=False,
     aggregation_method="weighted_average",
+    emb_store:typing.Dict[str,typing.List]=None
 ):
     """Get embeddings for unique variants"""
 
@@ -593,8 +602,21 @@ def get_vectors(
         strings_from.append(helper.get_string(splitted_from, x[0]))
         strings_to.append(helper.get_string(splitted_to, x[1]))
 
+
     # print("strings_from", len(strings_from), strings_from)
     # print("strings_to", len(strings_from), strings_to)
+
+    if emb_store:
+        try:
+            v1 = [ emb_store[calculate_sha1( HelperParagraphSpliter.ClearTextFromParagrapSplitter (l) )] for l in strings_from ]
+        except:
+            v1 = aligner.get_line_vectors(strings_from, model_name, model=model)
+        try:
+            v2 = [ emb_store[calculate_sha1(l)] for l in strings_to ]
+        except:
+            v2 = aligner.get_line_vectors(strings_to, model_name, model=model)
+        return v1,v2
+
 
     if not use_aggregation:
         # print("Generating embeddings for unique variants")
