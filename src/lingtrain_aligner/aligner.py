@@ -6,6 +6,8 @@ import os
 import random
 import re
 import sqlite3
+import threading
+import typing
 from collections import defaultdict
 
 import numpy as np
@@ -16,9 +18,12 @@ from scipy import spatial
 from sentence_transformers import SentenceTransformer
 import subprocess
 
+from src.lingtrain_aligner.CacheFolderSettings import GetDefModelName
+
 to_delete = re.compile(
     r'[」「@#$%^&»«“”„‟"\x1a⓪①②③④⑤⑥⑦⑧⑨⑩⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽*\(\)\[\]\n\/\-\:•＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》【】〔〕〖〗〘〙〜〟〰〾〿–—‘’‛‧﹏〉]+'
 )
+
 
 custom_model_name, custom_model = "", None
 
@@ -1290,3 +1295,77 @@ def update_index_mapping(db_path, direction, line_id):
                     new_values = [x if x <= line_id else x + 1 for x in text_ids]
                     index[i][j][direction_id] = json.dumps(new_values)
         update_doc_index(db, index)
+
+
+
+def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
+    global g_model_nn
+    if not g_model_nn:
+        g_model_nn = model_dispatcher.models[GetDefModelName()]
+    embed_batch_size = 10
+    emb2 = g_model_nn.embed(
+        text_items, embed_batch_size, True, show_progress_bar=isShowProgress
+    )
+    res.append(emb2)
+    return emb2
+
+def getEmbidingsAllTexts(db_path,model_name,embed_batch_size=10):
+
+    global g_model_nn
+
+    g_model_nn = model_dispatcher.models[model_name]
+
+    splitted_from = get_splitted_from(db_path)
+    splitted_to = get_splitted_to(db_path)
+
+    #splitted_from = splitted_from[:4000]
+    #splitted_to = splitted_to[:4000]
+    ix_split = len(splitted_from)//2
+    res1 = []
+    res2 = []
+    
+    # Create threads with proper result handling
+    th1 = threading.Thread(target=lambda: getEmb4Part(splitted_from[:ix_split], res1))
+    th2 = threading.Thread(target=lambda: getEmb4Part(splitted_from[ix_split:], res2))
+
+    # Start threads
+    th1.start()
+    th2.start()
+
+    # Wait for both threads to complete
+    th1.join()
+    th2.join()
+
+    # Verify results are available
+    if not res1 or not res2:
+        raise Exception("Thread execution failed - results not available")
+
+    # Combine results
+    emb1 = np.vstack((res1[0], res2[0]))
+
+
+    """
+    emb1 = model_dispatcher.models[model_name].embed(
+        splitted_from, embed_batch_size, True, True
+    )
+    """
+
+    res1 = []
+    res2 = []
+    ix_split = len(splitted_to)//2
+    th1 = threading.Thread(target = lambda : getEmb4Part(splitted_to[:ix_split], res1))
+    th2 = threading.Thread(target = lambda : getEmb4Part(splitted_to[ix_split:], res2))
+
+    th1.start()
+    th2.start()
+    th1.join()
+    th2.join()
+
+    emb2 =  np.vstack((res1[0], res2[0]))
+
+    """
+    emb2 = model_dispatcher.models[model_name].embed(
+            splitted_to, embed_batch_size, True, True
+        )
+        """
+    return emb1, emb2
