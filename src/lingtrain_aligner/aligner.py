@@ -19,6 +19,7 @@ from sentence_transformers import SentenceTransformer
 import subprocess
 
 from src.lingtrain_aligner.CacheFolderSettings import GetDefModelName
+from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 
 to_delete = re.compile(
     r'[」「@#$%^&»«“”„‟"\x1a⓪①②③④⑤⑥⑦⑧⑨⑩⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽*\(\)\[\]\n\/\-\:•＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》【】〔〕〖〗〘〙〜〟〰〾〿–—‘’‛‧﹏〉]+'
@@ -1315,8 +1316,8 @@ def getEmbidingsAllTexts(db_path,model_name,embed_batch_size=10):
 
     g_model_nn = model_dispatcher.models[model_name]
 
-    splitted_from = get_splitted_from(db_path)
-    splitted_to = get_splitted_to(db_path)
+    splitted_from = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_from(db_path))
+    splitted_to = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_to(db_path))
 
     #splitted_from = splitted_from[:4000]
     #splitted_to = splitted_to[:4000]

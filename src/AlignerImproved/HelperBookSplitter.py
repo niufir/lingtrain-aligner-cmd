@@ -2,12 +2,13 @@ import typing
 
 from tqdm import tqdm
 
+from src.AlignerImproved.CHelperClearnPrologs import CHelper_CleanerTexts
 from src.AlignerImproved.LoggerHelper import SingletonLoggerHelper
 from src.AlignerImproved.MainAligner import BookSplitSection
 from src.AlignerImproved.ParagraphMaker import ends_with_roman_numeral, isChapterPresent, calcMedDist
 
 gLogger = SingletonLoggerHelper()
-class CHelper_CleanerTexts:
+class HelperBookSplitter:
 
     @staticmethod
     def validateBlockSize(size_bk_from:int, size_bk_to:int, kf_from_to:float)->bool:
@@ -17,7 +18,7 @@ class CHelper_CleanerTexts:
 
     @staticmethod
     def splitBookRawText(booksection:BookSplitSection):
-        CHelper_CleanerTexts.gLogger.info('Call split book from small parts, using find similarity' + '\n' +'\t'*13 + f'ix_to:{booksection.ix_to}')
+        HelperBookSplitter.gLogger.info('Call split book from small parts, using find similarity' + '\n' +'\t'*13 + f'ix_to:{booksection.ix_to}')
         start_pos = 0
         start_pos_small_step=0
         start_pos2 = 0
@@ -92,7 +93,7 @@ class CHelper_CleanerTexts:
 
     @staticmethod
     def split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to):
-        chapter_indexes_1, chapter_indexes_2 = CHelper_CleanerTexts.findChapters(splitted_from, splitted_to)
+        chapter_indexes_1, chapter_indexes_2 = HelperBookSplitter.findChapters(splitted_from, splitted_to)
         indexMapping = {}
         for ix in tqdm(chapter_indexes_1[1:]):
             dist_store = []
@@ -142,22 +143,27 @@ class CHelper_CleanerTexts:
                                     ix_to=prev_ix_2, ix_to_last=-1,
                                     )
         books_splits.append(bk_split)
+
         return books_splits
 
     @staticmethod
     def SplitBookOnSmallParts(emb2, emb_1, splitted_from, splitted_to)->typing.List[BookSplitSection]:
+
         assert len(emb2) == len(splitted_to)
         assert len(emb_1) == len(splitted_from)
-        books_splits = CHelper_CleanerTexts.split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to)
+
+        books_splits = HelperBookSplitter.split_using_parahrps_markers(emb2, emb_1, splitted_from, splitted_to)
+
         gLogger.logToSummary('Using Paragraph Splitting - Sizes splitted block (using paragraph):')
         [gLogger.logToSummary('\t size block in KB ' + str(bk.sizeText_From_kb())) for bk in books_splits]
+
         books_splites_res:typing.List[BookSplitSection] = []
-        CHelper_CleanerTexts.printBookSplitItems(books_splits)
+        HelperBookSplitter.printBookSplitItems(books_splits)
         for cur_sp_block in books_splits:
             if cur_sp_block.sizeText_From()<1e5:
                 books_splites_res.append(cur_sp_block)
                 continue
-            raw_split_re = CHelper_CleanerTexts.splitBookRawText( cur_sp_block )
+            raw_split_re = HelperBookSplitter.splitBookRawText( cur_sp_block )
             books_splites_res+=raw_split_re
 
         books_splites_res = BookSplitSection.CombineSmallPartsTogether(books_splites_res)
@@ -165,8 +171,9 @@ class CHelper_CleanerTexts:
         print(f'Found {len(books_splites_res)} splits for book')
 
         # print(f'Find raw split from_text {start_pos}:{same_text_res.indx_txt_main} and to_text {start_pos2}:{same_text_res.indx_txt_opposite}')
-        CHelper_CleanerTexts.printBookSplitItems(books_splites_res)
+        HelperBookSplitter.printBookSplitItems(books_splites_res)
         return books_splites_res
+
     @staticmethod
     def findChapters(splitted_from:typing.List[str],
                      splitted_to:typing.List[str]) -> (
@@ -191,6 +198,17 @@ class CHelper_CleanerTexts:
 
         print('line numbers:',chapt_possible1)
         print('line numbers:',chapt_possible2)
+
         return chapt_possible1,chapt_possible2
+
+    @staticmethod
+    def printBookSplitItems(books_splites_res:typing.List[BookSplitSection]):
+        for ix, bk_split in enumerate(books_splites_res):
+            msg = f'\t size block {ix} FROM  {bk_split.ix_from}:{bk_split.ix_from_last}/{bk_split.ix_to}:{bk_split.ix_to_last} Sizes: {bk_split.sizeText_From_kb()} KB:{bk_split.sizeText_To_kb()}KB. Lines count {bk_split.linesCnt_From()}:{bk_split.linesCnt_To()} '
+            gLogger.logToSummary(msg)
+            txt_split_from = bk_split.split_from[0] if len(bk_split.split_from) > 0 else '-1'
+            txt_split_to = bk_split.split_to[0] if len(bk_split.split_to) > 0 else '-1'
+            msg = f'\t\t text from/to:->{txt_split_from}\n\t\t->{txt_split_to}'
+            gLogger.logToSummary(msg)
 
 

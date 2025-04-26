@@ -1,6 +1,7 @@
 """Texts splitter part of the engine"""
 
 import re
+import typing
 
 import razdel
 from lingtrain_aligner import preprocessor
@@ -171,7 +172,7 @@ def get_substrings(line, sep, endings, res):
             res.append(line + sep)
 
 
-def split_by_sentences_wrapper(lines, langcode, clean_text=True):
+def split_by_sentences_wrapper(lines, langcode, clean_text=True)->typing.List[str]:
     """Special wrapper with an additional paragraph splitting"""
     res, acc = [], []
     marks = preprocessor.get_all_meta_marks()

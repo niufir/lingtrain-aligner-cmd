@@ -599,8 +599,8 @@ def AlignBook(
     text1_prepared = preprocessor.mark_paragraphs(text1)
     text2_prepared = preprocessor.mark_paragraphs(text2)
 
-    splitted_from = splitter.split_by_sentences_wrapper(text1_prepared, book1.lng_abr_src)
-    splitted_to = splitter.split_by_sentences_wrapper(text2_prepared, book1.lng_abr_dst)
+    splitted_from:typing.List[str] = splitter.split_by_sentences_wrapper(text1_prepared, book1.lng_abr_src)
+    splitted_to:typing.List[str] = splitter.split_by_sentences_wrapper(text2_prepared, book1.lng_abr_dst)
     # splitted_from = [i.replace('%%%%%','') for i in splitted_from]
     # splitted_to = [i.replace('%%%%%','') for i in splitted_to]
     joblib.dump([splitted_from, splitted_to], logHlp.getPathTextLinesDump())
@@ -634,7 +634,8 @@ def AlignBook(
     hash_emb_store_2 = { calculate_sha1(txt):val for txt, val in zip(split_to_sanit, emb2)}
     hash_emb_store_1.update(hash_emb_store_2)
 
-    books_splits:typing.List[BookSplitSection] = SplitBookOnSmallParts(emb2, emb_1, splitted_from, splitted_to)
+
+    books_splits:typing.List[BookSplitSection] = CHelper_CleanerTexts.SplitBookOnSmallParts(emb2, emb_1, splitted_from, splitted_to)
 
     # db_path = '1asfa_dbg.sql'
     """
@@ -684,7 +685,10 @@ def alignSplittedPartOfBook(book1, books_splits, hash_emb_store_1, logHlp)->typi
         total_aligned_book.append(res)
     return total_aligned_book
 
-def ClearPrologEpilogFromBook(emb, logHlp, splitted_from, splitted_to):
+def ClearPrologEpilogFromBook(emb:typing.List[np.ndarray],
+                                logHlp:LogDebugHelper,
+                              splitted_from:typing.List[str],
+                              splitted_to:typing.List[str]):
     # clean prolog and epilog in book
     clHelper = CHelper_CleanerTexts()
     emb_1, emb2, splitted_from, splitted_to = clHelper.ClearText(emb[0], emb[1], splitted_from, splitted_to)
@@ -712,9 +716,6 @@ def MakeEmbidings(book1, logHlp, name_emb_dump, splitted_from, splitted_to):
 def dbg_splitBook_onSmall_parts():
     emb2, emb_1, splitted_from, splitted_to = joblib.load(gPathDumpBookSplits)
     return SplitBookOnSmallParts( emb2, emb_1, splitted_from, splitted_to)
-
-
-
 
 
 def printBookSplitItems(books_splites_res):

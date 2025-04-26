@@ -519,7 +519,7 @@ class CHelper_CleanerTexts:
         self.saveText2File(splitted_to,'dbg_split_to.txt')
         return
 
-    def ClearText(self, emb_1, emb_2,
+    def ClearText(self, emb_1:np.ndarray, emb_2:np.ndarray,
                   text_from:typing.List[str],
                   text_to:typing.List[str]):
 
@@ -537,6 +537,11 @@ class CHelper_CleanerTexts:
         emb_1  =self.emb_1[ix_prologs[0]:ix_epilogs[0] +1 ]
         emb_2 = self.emb2[ ix_prologs[1]:ix_epilogs[1] + 1 ]
         return emb_1, emb_2, splitted_from, splitted_to
+
+    @staticmethod
+    def Split2SmallBooks(cmp_store:typing.List[CMergingInfo], isTestOld:bool = False):
+        hlp = CHelper_CleanerTexts()
+        return hlp.SplitFromStart(cmp_store, isTestOld=isTestOld)
 
 def main_tst():
     sys.exit(0)
