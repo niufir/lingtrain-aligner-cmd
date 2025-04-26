@@ -101,4 +101,9 @@ def GetCachingPath_HurringFace():
         return GetAppSettings().m_path_caching_hurringface
 
     
+def GetDefModelName():
+    return ConfigApp().m_Model_Name
 
+def SetDefModelName(nn_model_name:str):
+    ConfigApp().m_Model_Name = nn_model_name
+    return

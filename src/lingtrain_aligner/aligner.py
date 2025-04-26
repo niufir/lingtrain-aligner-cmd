@@ -19,9 +19,9 @@ from sentence_transformers import SentenceTransformer
 import subprocess
 
 from src.AlignerImproved.ParagraphMaker import calculate_sha1
-from src.lingtrain_aligner.CacheFolderSettings import GetDefModelName
+
 from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
-from src.lingtrain_aligner.Settings import GetCachingPath_HurringFace
+from src.lingtrain_aligner.Settings import GetCachingPath_HurringFace, GetDefModelName
 
 to_delete = re.compile(
     r'[」「@#$%^&»«“”„‟"\x1a⓪①②③④⑤⑥⑦⑧⑨⑩⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽*\(\)\[\]\n\/\-\:•＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》【】〔〕〖〗〘〙〜〟〰〾〿–—‘’‛‧﹏〉]+'
@@ -1360,9 +1360,7 @@ def update_index_mapping(db_path, direction, line_id):
 
 
 def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
-    global g_model_nn
-    if not g_model_nn:
-        g_model_nn = model_dispatcher.models[GetDefModelName()]
+    g_model_nn = model_dispatcher.models[GetDefModelName()]
     embed_batch_size = 10
     emb2 = g_model_nn.embed(
         text_items, embed_batch_size, True, show_progress_bar=isShowProgress, lang=None
@@ -1371,8 +1369,6 @@ def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
     return emb2
 
 def getEmbidingsAllTexts(db_path,model_name,embed_batch_size=10):
-
-    global g_model_nn
 
     g_model_nn = model_dispatcher.models[model_name]
 

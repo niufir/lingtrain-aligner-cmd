@@ -5,7 +5,8 @@ import sys
 
 import os
 
-from src.lingtrain_aligner.Settings import GetAppSettings
+from src.AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
+from src.lingtrain_aligner.Settings import GetAppSettings, SetDefModelName
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -17,12 +18,6 @@ from LogDebugHelper import LogDebugHelper
 from LoggerHelper import  SingletonLoggerHelper
 from PayloadModels.CTextAlignItem import CTextAlignItem
 from HelperBookSplitter  import CHelperBookSplitter
-
-
-
-from src.lingtrain_aligner.CacheFolderSettings import SetDefModelName
-
-
 
 import joblib
 
@@ -494,7 +489,7 @@ def AlignBook(
 
     if os.path.exists(pathDump):
         emb2, emb_1, splitted_from, splitted_to = joblib.load( pathDump )
-    if False:
+    if True:
         if config.isSkipSanitize:
             joblib.dump([emb[0], emb[1], splitted_from, splitted_to], pathDump)
             emb_1, emb2, splitted_from, splitted_to = emb[0], emb[1], splitted_from, splitted_to
