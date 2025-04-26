@@ -5,7 +5,7 @@ import argparse
 from pprint import pprint
 import os, sys
 
-from AlignerImproved.Settings import ConfigApp
+
 from AlignerImproved.ConfigModel import ConfigAlignBook
 from AlignerImproved.LoggerHelper import SingletonLoggerHelper
 from AlignerImproved.LoggerCreation import getLogger4Run
@@ -142,6 +142,7 @@ class CCmdTool:
 
         lng_dest = detect_lang_4_file(self.config.dest_book_txt_path)
         lng_src = detect_lang_4_file(self.config.src_book_txt_path)
+        from src.lingtrain_aligner.Settings import ConfigApp
         ConfigApp().setLange(lng_src, lng_dest)
         print(f'Language book src {lng_src} - {self.config.src_book_txt_path}')
         print(f'Language book src {lng_dest} - {self.config.dest_book_txt_path}')

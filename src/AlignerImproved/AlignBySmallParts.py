@@ -27,7 +27,7 @@ def splitTextOnSmallParts(text1:typing.List[str], text2:typing.List[str],
     # batch_ids = [0,1]
 
     aligner.align_db(db_path4work,
-                     GetAppSettings().g_Model_Name,
+                     GetAppSettings().m_Model_Name,
                      batch_size=batchsize,
                      window=80,
                      batch_ids=batchlist,

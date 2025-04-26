@@ -4,6 +4,8 @@ import numpy as np
 import sys
 
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from AlignBookItemResult import AlignBookItemResult
 from ConfigModel import ConfigAlignBook
@@ -12,10 +14,10 @@ from LogDebugHelper import LogDebugHelper
 from LoggerHelper import  SingletonLoggerHelper
 from PayloadModels.CTextAlignItem import CTextAlignItem
 
-from Settings import GetAppSettings
+
 from src.lingtrain_aligner.CacheFolderSettings import SetDefModelName
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 import joblib
 
@@ -357,7 +359,7 @@ def processSmallPart(book1:BookConfig,text1_prepared, text2_prepared,
     #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,24]
 
     aligner.align_db(db_path,
-                     GetAppSettings().g_Model_Name,
+                     GetAppSettings().m_Model_Name,
                      batch_size=batch_size,
                      window=100,
                      batch_ids=batch_ids,
@@ -380,7 +382,7 @@ def processSmallPart(book1:BookConfig,text1_prepared, text2_prepared,
 
     for i in range(steps):
         conflicts, rest = resolver.get_all_conflicts(db_path, min_chain_length=2+i, max_conflicts_len=6*(i+1), batch_id=batch_id)
-        resolver.resolve_all_conflicts(db_path, conflicts, GetAppSettings().g_Model_Name, show_logs=False, emb_store=emb_store)
+        resolver.resolve_all_conflicts(db_path, conflicts, GetAppSettings().m_Model_Name, show_logs=False, emb_store=emb_store)
         #vis_helper.visualize_alignment_by_db(db_path, output_path="img_test1.png", lang_name_from=lang_from, lang_name_to=lang_to, batch_size=400, size=(600,600), plt_show=True)
 
         if len(rest) == 0: break
@@ -582,7 +584,7 @@ def AlignBook(
     g_LogHlp = logHlp
     if config.IsTestMode: g_LogHlp.ClearLogDir()
 
-    SetDefModelName(GetAppSettings().g_Model_Name)
+    SetDefModelName(GetAppSettings().m_Model_Name)
 
     gLogger.setPathSummaryLog(g_LogHlp.getPathSummaryLog() )
     gLogger.info(f'Root path for log data: {logHlp.RootPath}' )
@@ -696,7 +698,7 @@ def MakeEmbidings(book1, logHlp, name_emb_dump, splitted_from, splitted_to):
         os.unlink(db_path)
     aligner.fill_db(db_path, book1.lng_abr_src, book1.lng_abr_dst, splitted_from, splitted_to)
     if not os.path.exists(name_emb_dump):
-        emb = aligner.getEmbidingsAllTexts(db_path, GetAppSettings().g_Model_Name)
+        emb = aligner.getEmbidingsAllTexts(db_path, GetAppSettings().m_Model_Name)
         joblib.dump(emb, name_emb_dump)
     emb = joblib.load(name_emb_dump)
     assert len(emb[0]) == len(splitted_from)

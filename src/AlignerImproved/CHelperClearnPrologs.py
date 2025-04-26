@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import pairwise_distances
 from LoggerHelper import SingletonLoggerHelper, GetSingLogger
-from Settings import GetAppSettings
+from src.lingtrain_aligner.Settings import GetAppSettings
 
 Count_Addion_Text_Clear_Text = 100
 def import_ling_align():
