@@ -19,7 +19,7 @@ class CHelperBookSplitter:
 
     @staticmethod
     def splitBookRawText(booksection:BookSplitSection):
-        CHelperBookSplitter.gLogger.info('Call split book from small parts, using find similarity' + '\n' + '\t' * 13 + f'ix_to:{booksection.ix_to}')
+        gLogger.info('Call split book from small parts, using find similarity' + '\n' + '\t' * 13 + f'ix_to:{booksection.ix_to}')
         start_pos = 0
         start_pos_small_step=0
         start_pos2 = 0
@@ -65,7 +65,7 @@ class CHelperBookSplitter:
 
                 size_from_bytes = section_new.sizeText_From()
                 size_to_bytes = section_new.sizeText_To()
-                if validateBlockSize(size_from_bytes, size_to_bytes, kf_fr_to):
+                if CHelperBookSplitter.validateBlockSize(size_from_bytes, size_to_bytes, kf_fr_to):
                     res_sections.append(section_new)
                     start_pos = same_text_res.indx_txt_main
                     start_pos2 = same_text_res.indx_txt_opposite

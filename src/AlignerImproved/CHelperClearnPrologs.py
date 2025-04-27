@@ -245,8 +245,8 @@ class CHelper_CleanerTexts:
                          scanDir:ETypeWindowScan = ETypeWindowScan.ScanAround
                          , Edge_value:float = GetAppSettings().DIST_EDGE)->CMergingInfo:
         err_cont_max = 0
-        if 'She was at the Bouffons last night' in text_corpora[ix_process]:
-            pass
+        #if 'She was at the Bouffons last night' in text_corpora[ix_process]:
+        #    pass
         e_1 = self.emb_1[ix_process]
         print(text_corpora[ix_process])
         _, indices =  self.findSimilarUsingIndex_In_To(e_1) # self.nbrs.kneighbors([e_1])

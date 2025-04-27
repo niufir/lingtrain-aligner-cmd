@@ -68,6 +68,11 @@ class CCmdTool:
 
         path_dir_src = os.path.dirname( config.source_book_path )
         assert os.path.exists(config.source_book_path), f'Source file not exist. Possible not set current dir. Current value:{path_dir_src}'
+
+        if not os.path.isabs(config.output_book_path):
+            if os.path.dirname(config.output_book_path) == '':
+                config.output_book_path = os.path.join(path_dir_src, config.output_book_path)
+            config.output_book_path = os.path.abspath(config.output_book_path)
         dir_path = os.path.dirname(config.output_book_path)
         dir_path = dir_path if len(dir_path)>0 else os.getcwd()
         logHlp:LogDebugHelper = LogDebugHelper( dir_path, src_lang=config.lng_src, dst_lang=config.lng_dest )

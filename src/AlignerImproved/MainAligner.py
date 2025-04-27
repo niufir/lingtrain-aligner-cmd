@@ -487,8 +487,6 @@ def AlignBook(
 
     pathDump = logHlp.getPathClearedPrologData()
 
-    if os.path.exists(pathDump):
-        emb2, emb_1, splitted_from, splitted_to = joblib.load( pathDump )
     if True:
         if config.isSkipSanitize:
             joblib.dump([emb[0], emb[1], splitted_from, splitted_to], pathDump)
@@ -571,6 +569,8 @@ def ClearPrologEpilogFromBook(emb:typing.List[np.ndarray],
                               splitted_from:typing.List[str],
                               splitted_to:typing.List[str]):
     # clean prolog and epilog in book
+    assert len(emb[0]) == len(splitted_from)
+    assert len(emb[1]) == len(splitted_to)
     clHelper = CHelper_CleanerTexts()
     emb_1, emb2, splitted_from, splitted_to = clHelper.ClearText(emb[0], emb[1], splitted_from, splitted_to)
     assert len(emb_1) == len(splitted_from)
