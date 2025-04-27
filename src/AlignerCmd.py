@@ -90,13 +90,21 @@ class CCmdTool:
                             help='The path to the output book file.')
         parser.add_argument('--pathHomeDir', type=str, required=False,
                             help='The path home dir.')
+        
+        
+        parser.add_argument('--bidirect-book', action='store_true', default=False,
+                            help='Process book in bidirectional language mode.')
 
         args = parser.parse_args()
         # Hereafter, you can use these parsed arguments like this:
         source_book_path = args.pathBookFrom
         destination_book_path = args.pathBookTo
         output_book_path = args.pathBookOut
-        conf  = ConfigAlignBook(source_book_path, destination_book_path, output_book_path, args.isSkipSanitizing)
+        conf  = ConfigAlignBook(source_book_path, 
+                                destination_book_path, 
+                                output_book_path, 
+                                args.isSkipSanitizing,
+                                isBidirect=args.bidirect_book)
         return conf
 
     def readFileWrapper(self, file_path:str)->str:

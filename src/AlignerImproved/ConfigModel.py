@@ -15,10 +15,12 @@ class ConfigAlignBook:
 
     IsMakeOnlySanitizeData:bool = False
     IsTestMode:bool = False
+    isBidirect:bool = False
 
     def __init__(self, source_book_path, dest_book_path, output_book_path,
                  isSkipSanitize:bool=False,
-                 isTestMode:bool=False):
+                 isTestMode:bool=False,
+                 isBidirect:bool=False):
         self.source_book_path = source_book_path
         self.dest_book_path = dest_book_path
         self.output_book_path = output_book_path
@@ -28,7 +30,9 @@ class ConfigAlignBook:
         self.lng_src:str = None
         self.lng_dest:str = None
         self.isSkipSanitize = isSkipSanitize
+        self.isBidirect = isBidirect
         return
+    
     def setTestMode(self):
         self.IsTestMode = True
         return

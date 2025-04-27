@@ -7,6 +7,7 @@ import os
 
 from src.AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
 from src.lingtrain_aligner.Settings import GetAppSettings, SetDefModelName
+from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -487,7 +488,7 @@ def AlignBook(
 
     pathDump = logHlp.getPathClearedPrologData()
 
-    if True:
+    if False:
         if config.isSkipSanitize:
             joblib.dump([emb[0], emb[1], splitted_from, splitted_to], pathDump)
             emb_1, emb2, splitted_from, splitted_to = emb[0], emb[1], splitted_from, splitted_to
@@ -501,18 +502,12 @@ def AlignBook(
         if config.IsMakeOnlySanitizeData:
             gLogger.Info("Stop process book - set flaf IsMakeOnlySanitizeData")
             return
+    else:
+        emb2, emb_1, splitted_from, splitted_to = joblib.load(pathDump)
 
     aligner.fill_db(db_path, book1.lng_abr_src, book1.lng_abr_dst, splitted_from, splitted_to)
 
-    split_from_sanit = aligner.handle_marks(splitted_from)[0]
-    split_from_sanit = [i[0] for i in split_from_sanit]
-    split_to_sanit = aligner.handle_marks(splitted_to)[0]
-    split_to_sanit = [i[0] for i in split_to_sanit]
-
-    hash_emb_store_1 = { calculate_sha1(txt):val for txt, val in zip(split_from_sanit, emb_1)}
-    hash_emb_store_2 = { calculate_sha1(txt):val for txt, val in zip(split_to_sanit, emb2)}
-    hash_emb_store_1.update(hash_emb_store_2)
-
+    hash_emb_store_1 = makeHashMapFromBookTexts(emb2, emb_1, splitted_from, splitted_to)
 
     books_splits:typing.List[BookSplitSection] = CHelperBookSplitter.SplitBookOnSmallParts(emb2, emb_1, splitted_from, splitted_to)
 
@@ -538,13 +533,41 @@ def AlignBook(
     else:
         total_aligned_book:typing.List[AlignBookItemResult] = joblib.load( pathDumpResAligned )
 
+    if config.isBidirect:
+        emb2, emb_1 = (emb_1, emb2)
+        splitted_from, splitted_to = ( splitted_to, splitted_from)
+        hash_emb_store_1 = makeHashMapFromBookTexts(emb2, emb_1, splitted_from, splitted_to)
+        books_splits: typing.List[BookSplitSection] = CHelperBookSplitter.SplitBookOnSmallParts(emb2, emb_1,
+                                                                                                splitted_from,
+                                                                                                splitted_to)
 
+        total_aligned_book: typing.List[AlignBookItemResult] = alignSplittedPartOfBook(book1, books_splits,
+                                                                                       hash_emb_store_1, logHlp)
+
+        makeResultBookFromParts(total_aligned_book)
+        pass
+    
     print('Save result in dump file')
     joblib.dump(total_aligned_book, g_LogHlp.getPathDumpAllBookParts() )
     makeResultBookFromParts( total_aligned_book )
     gLogger.printSummary()
     print("End")
     return
+
+
+def makeHashMapFromBookTexts(emb2:np.ndarray, emb_1:np.ndarray,
+                             splitted_from:typing.List[str], splitted_to:typing.List[str])->typing.Dict[str,np.ndarray]:
+
+    split_from_sanit = aligner.handle_marks(splitted_from)[0]
+    split_from_sanit = [i[0] for i in split_from_sanit]
+    split_to_sanit = aligner.handle_marks(splitted_to)[0]
+    split_to_sanit = [i[0] for i in split_to_sanit]
+    hash_emb_store_1 = {calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(txt)): val for txt, val in
+                        zip(split_from_sanit, emb_1)}
+    hash_emb_store_2 = {calculate_sha1(HelperParagraphSpliter.ClearTextFromParagrapSplitter(txt)): val for txt, val in
+                        zip(split_to_sanit, emb2)}
+    hash_emb_store_1.update(hash_emb_store_2)
+    return hash_emb_store_1
 
 
 def alignSplittedPartOfBook(book1, books_splits, hash_emb_store_1, logHlp)->typing.List[AlignBookItemResult]:
