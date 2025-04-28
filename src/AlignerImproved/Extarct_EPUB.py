@@ -407,8 +407,6 @@ def extract_text_pipe( pahttext:str, pathFileOut:str ):
     return
 
 
-
-
 def main():
     pahttext = r""
     path_out=r""

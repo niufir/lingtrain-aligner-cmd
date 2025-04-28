@@ -90,7 +90,9 @@ class CCmdTool:
                             help='The path to the output book file.')
         parser.add_argument('--pathHomeDir', type=str, required=False,
                             help='The path home dir.')
-        
+        parser.add_argument('--model-name', type=str, required=False,
+                            help='Support models:"sentence_transformer_multilingual", "sentence_transformer_multilingual_labse", "sonar"')
+
         
         parser.add_argument('--bidirect-book', action='store_true', default=False,
                             help='Process book in bidirectional language mode.')
@@ -104,6 +106,7 @@ class CCmdTool:
                                 destination_book_path, 
                                 output_book_path, 
                                 args.isSkipSanitizing,
+                                model_name=args.model_name,
                                 isBidirect=args.bidirect_book)
         return conf
 

@@ -1363,7 +1363,7 @@ def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
     g_model_nn = model_dispatcher.models[GetDefModelName()]
     embed_batch_size = 10
     emb2 = g_model_nn.embed(
-        text_items, embed_batch_size, True, show_progress_bar=isShowProgress, lang=None
+        text_items, embed_batch_size, True, show_progress_bar=isShowProgress, lang='el'
     )
     res.append(emb2)
     return emb2

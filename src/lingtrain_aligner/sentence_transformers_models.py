@@ -164,7 +164,7 @@ class SonarModel:
         )
         return _tokenizer
 
-    def embed(self, lines, batch_size, normalize_embeddings, show_progress_bar, lang):
+    def embed(self, lines, batch_size, normalize_embeddings, show_progress_bar, lang="el"):
         # Ideally, we should indicate the real language of the text when encoding it.
         # By default, we indicate greek, because with this language, it is the easiest for the model to understand that the language tag is wrong and ignore it.
         # LANGUAGE LIST https://github.com/facebookresearch/SONAR/blob/main/sonar/cards/text_sonar_basic_encoder.yaml

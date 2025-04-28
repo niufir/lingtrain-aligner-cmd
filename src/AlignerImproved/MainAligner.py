@@ -443,6 +443,9 @@ def AlignBook(
     pathFileOut:str = config.output_book_path
     lng_src:str = config.lng_src
     lng_dst:str = config.lng_dest
+    GetAppSettings().SetModel_Name(config.modelName)
+
+
     assert os.path.exists(pathLngSrc),f'Path not exist {pathLngSrc}'
     assert os.path.exists(pathLngDst), f'Path not exist {pathLngDst}'
     assert lng_src != lng_dst

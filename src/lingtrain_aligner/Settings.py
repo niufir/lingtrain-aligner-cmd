@@ -11,7 +11,7 @@ sys.path.append(str(parent_dir))
 sys.path.append(str(parent_2up_dir))
 
 
-MODELS_AVALIABLE = ["sentence_transformer_multilingual", "sentence_transformer_multilingual_labse"]
+MODELS_AVALIABLE = ["sentence_transformer_multilingual", "sentence_transformer_multilingual_labse", "sonar"]
 
 
 DIST_EDGE_v_sentence_transformer_multilingual = 18.5
@@ -76,6 +76,14 @@ class ConfigApp:
 
     def GetCachingPath_HurringFace(self):
         return self.m_path_caching_hurringface
+
+    def SetModel_Name(self, model_name:str):
+        if not model_name: return
+        if model_name not in MODELS_AVALIABLE:
+            self.model_name = MODELS_AVALIABLE[0]
+        else:
+            self.m_Model_Name = model_name
+        return
 
     def init_once(self):
         self.readJson()
