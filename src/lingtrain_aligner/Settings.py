@@ -23,6 +23,7 @@ DIST_EDGE_ClearPrologs_v_sentence_transformer_multilingual_labse = 24.0
 
 EMB_SHAPE_sentence_transformer_multilingual = 512
 EMB_SHAPE_sentence_transformer_multilingual_labse = 768
+EMB_SHAPE_sonar = 1024
 
 LANG_POPULAR = ['ru','en','es','it','fr','de','pl']
 
@@ -62,7 +63,7 @@ class ConfigApp:
             with open(config_path, "r", encoding="utf-8") as f:
                 config_data = json.load(f)
                 if "model_name" in config_data:
-                    self.m_Model_Name = config_data["model_name"]
+                    self.SetModel_Name(config_data["model_name"])
                 if "path_NN_cache_directory" in config_data:
                     self.SetCachingPath_HurringFace(config_data["path_NN_cache_directory"])
         return
@@ -77,17 +78,10 @@ class ConfigApp:
     def GetCachingPath_HurringFace(self):
         return self.m_path_caching_hurringface
 
-    def SetModel_Name(self, model_name:str):
-        if not model_name: return
-        if model_name not in MODELS_AVALIABLE:
-            self.model_name = MODELS_AVALIABLE[0]
-        else:
-            self.m_Model_Name = model_name
-        return
 
-    def init_once(self):
-        self.readJson()
-        if self.m_Model_Name is not None:
+    def SetModel_Name(self, model_name:str):
+        self.m_Model_Name = model_name
+        if self.m_Model_Name is None:
             self.m_Model_Name: str = MODELS_AVALIABLE[0]
 
         if self.m_Model_Name == MODELS_AVALIABLE[0]:
@@ -100,6 +94,16 @@ class ConfigApp:
             self.DIST_EDGE = DIST_EDGE_v_sentence_transformer_multilingual_labse
             self.EMB_SHAPE_VALUE = EMB_SHAPE_sentence_transformer_multilingual_labse
             self.DIST_EDGE_ClearPrologs = DIST_EDGE_ClearPrologs_v_sentence_transformer_multilingual_labse
+        if self.m_Model_Name == MODELS_AVALIABLE[2]:
+            self.DIST_EDGE = 23
+            self.EMB_SHAPE_VALUE = EMB_SHAPE_sonar
+            self.DIST_EDGE_ClearPrologs = 26
+        return
+
+    def init_once(self):
+        self.readJson()
+        if self.m_Model_Name is None:
+            self.SetModel_Name(MODELS_AVALIABLE[0])
         return
 
 def GetAppSettings()->ConfigApp:

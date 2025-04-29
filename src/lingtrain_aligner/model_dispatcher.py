@@ -18,3 +18,11 @@ models = {
     "sonar": sonar,
     # "use_multilingual_v3": use_multilingual_v3_model
 }
+
+models_support_multithreading ={
+    "sentence_transformer_multilingual": True,
+    "sentence_transformer_multilingual_xlm_100": True,
+    "sentence_transformer_multilingual_labse": True,
+    "sonar": False,
+
+}

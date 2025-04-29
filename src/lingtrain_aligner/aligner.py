@@ -22,6 +22,7 @@ from src.AlignerImproved.ParagraphMaker import calculate_sha1
 
 from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 from src.lingtrain_aligner.Settings import GetCachingPath_HurringFace, GetDefModelName
+from src.lingtrain_aligner.model_dispatcher import models_support_multithreading
 
 to_delete = re.compile(
     r'[」「@#$%^&»«“”„‟"\x1a⓪①②③④⑤⑥⑦⑧⑨⑩⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽*\(\)\[\]\n\/\-\:•＂＃＄％＆＇（）＊＋－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》【】〔〕〖〗〘〙〜〟〰〾〿–—‘’‛‧﹏〉]+'
@@ -1371,55 +1372,58 @@ def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
 def getEmbidingsAllTexts(db_path,model_name,embed_batch_size=10):
 
     g_model_nn = model_dispatcher.models[model_name]
+    isMultiTreading = models_support_multithreading[model_name]
 
     splitted_from = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_from(db_path))
     splitted_to = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_to(db_path))
 
     #splitted_from = splitted_from[:4000]
     #splitted_to = splitted_to[:4000]
-    ix_split = len(splitted_from)//2
     res1 = []
     res2 = []
-    
-    # Create threads with proper result handling
-    th1 = threading.Thread(target=lambda: getEmb4Part(splitted_from[:ix_split], res1))
-    th2 = threading.Thread(target=lambda: getEmb4Part(splitted_from[ix_split:], res2))
 
-    # Start threads
-    th1.start()
-    th2.start()
+    if isMultiTreading:
+        ix_split = len(splitted_from)//2
 
-    # Wait for both threads to complete
-    th1.join()
-    th2.join()
+        # Create threads with proper result handling
+        th1 = threading.Thread(target=lambda: getEmb4Part(splitted_from[:ix_split], res1))
+        th2 = threading.Thread(target=lambda: getEmb4Part(splitted_from[ix_split:], res2))
 
-    # Verify results are available
-    if not res1 or not res2:
-        raise Exception("Thread execution failed - results not available")
+        # Start threads
+        th1.start()
+        th2.start()
+        # Wait for both threads to complete
+        th1.join()
+        th2.join()
+        # Verify results are available
+        if not res1 or not res2:
+            raise Exception("Thread execution failed - results not available")
+        # Combine results
+        emb1 = np.vstack((res1[0], res2[0]))
 
-    # Combine results
-    emb1 = np.vstack((res1[0], res2[0]))
+        """
+        emb1 = model_dispatcher.models[model_name].embed(
+            splitted_from, embed_batch_size, True, True
+        )
+        """
 
+        res1 = []
+        res2 = []
+        ix_split = len(splitted_to)//2
+        th1 = threading.Thread(target = lambda : getEmb4Part(splitted_to[:ix_split], res1))
+        th2 = threading.Thread(target = lambda : getEmb4Part(splitted_to[ix_split:], res2))
 
-    """
-    emb1 = model_dispatcher.models[model_name].embed(
-        splitted_from, embed_batch_size, True, True
-    )
-    """
+        th1.start()
+        th2.start()
+        th1.join()
+        th2.join()
 
-    res1 = []
-    res2 = []
-    ix_split = len(splitted_to)//2
-    th1 = threading.Thread(target = lambda : getEmb4Part(splitted_to[:ix_split], res1))
-    th2 = threading.Thread(target = lambda : getEmb4Part(splitted_to[ix_split:], res2))
-
-    th1.start()
-    th2.start()
-    th1.join()
-    th2.join()
-
-    emb2 =  np.vstack((res1[0], res2[0]))
-
+        emb2 =  np.vstack((res1[0], res2[0]))
+    else:
+        getEmb4Part(splitted_from, res1)
+        emb1 = np.vstack((res1[0]))
+        getEmb4Part(splitted_to[:], res2)
+        emb2 = np.vstack((res2[0]))
     """
     emb2 = model_dispatcher.models[model_name].embed(
             splitted_to, embed_batch_size, True, True
