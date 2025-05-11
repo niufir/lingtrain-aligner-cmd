@@ -1,8 +1,10 @@
 import typing
 
+from src.AlignerImproved.AlignBookItemResult import AlignBookResult
 from src.AlignerImproved.PayloadModels.CTextAlignItem import CTextAlignItem
 
 MARKER_VERSION_V1 = 'version_1.0'
+MARKER_VERSION_V2 = 'version_2.0'
 
 class ExportTextsHelper:
     def __init__(self):
@@ -17,6 +19,18 @@ class ExportTextsHelper:
         with open(path_file, "w", encoding='utf-8') as f:
             json.dump(res, f)
         return
+
+    @staticmethod
+    def exportAsJson_v2(book_data:AlignBookResult, path_file:str):
+        res = {}
+        res['version'] = MARKER_VERSION_V2
+        res['data_forward_langs_direction'] = [ item.ToDict() for item in book_data.JoinBookParts_ForwardDir() ]
+        res['data_backward_langs_direction'] = [item.ToDict() for item in book_data.JoinBookParts_BackwardDir()]
+        import json
+        with open(path_file, "w", encoding='utf-8') as f:
+            json.dump(res, f)
+        return
+
     @staticmethod
     def save_aligng3file( res_aligns:typing.List[CTextAlignItem], path_file:str ):
         print('Save aliging data to file:', path_file)

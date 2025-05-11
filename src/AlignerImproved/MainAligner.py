@@ -5,6 +5,8 @@ import sys
 
 import os
 
+from dateparser.data.date_translation_data import bo
+
 from src.AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
 from src.lingtrain_aligner.Settings import GetAppSettings, SetDefModelName
 from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
@@ -12,7 +14,7 @@ from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from AlignBookItemResult import AlignBookItemResult
+from AlignBookItemResult import AlignBookItemResult, AlignBookResult
 from ConfigModel import ConfigAlignBook
 from ExportTextsHelper import ExportTextsHelper
 from LogDebugHelper import LogDebugHelper
@@ -413,20 +415,27 @@ def AddDistancesToAlignItems(emb_store, res_aligns):
     return res_aligns
 
 
-def makeResultBookFromParts(data:typing.List[AlignBookItemResult]):
-
+def makeResultBookFromParts(data:AlignBookResult):
     if not data:
         data = joblib.load(g_LogHlp.getPathDumpAllBookParts())
-    assert isinstance(data[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
+    assert isinstance(data,AlignBookResult), f'Current type {type(data)} is not AlignBookResult'
+    assert isinstance(data.AlignItems_ForwardDirection[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
+    assert isinstance(data.AlignItems_BackwardDirection[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
     cumul_book = []
     book_cfg = makeBookConfig()
-    for item in data:
-        cumul_book+=item.AlignData[:]
-    #print(data[0])
     print('Save result to file: ', book_cfg.pathFileOut)
-    ExportTextsHelper.exportAsJson_v1(cumul_book, g_LogHlp.getOutJsonFilePathFromOrig(book_cfg.pathFileOut)  )
+    ExportTextsHelper.exportAsJson_v2(data, g_LogHlp.getOutJsonFilePathFromOrig(book_cfg.pathFileOut)  )
     ExportTextsHelper.save_aligng3file(cumul_book, book_cfg.pathFileOut)
-    #save_aligng3file(cumul_book, book_cfg.pathFileOut)
+
+
+    reader.create_book(paragraphs=data.GetParagraphs_Dict_Oring_version(),
+                       lang_ordered=['from', 'to'],
+                       delimeters=data.GetDelemiters_Oring_version(),
+                       metas={'items': {'from': {}, 'to': {}}, 'main_lang_code': 'from'},
+                       sent_counter=data.GetSentCounters_Orign_version(),
+                       output_path=book_cfg.pathFileOut,
+                       template="none")
+
     return
 
 
@@ -486,12 +495,21 @@ def AlignBook(
     # splitted_to = [i.replace('%%%%%','') for i in splitted_to]
     joblib.dump([splitted_from, splitted_to], logHlp.getPathTextLinesDump())
 
+    #makeResultBookFromParts(None)
+
     name_emb_dump = logHlp.getPath_EmbDump()
     db_path, emb = MakeEmbidings(book1, logHlp, name_emb_dump, splitted_from, splitted_to)
 
     pathDump = logHlp.getPathClearedPrologData()
 
-    if False:
+
+    # todo: remove
+    resAlignBook = joblib.load( g_LogHlp.getPathDumpAllBookParts() )[0]
+    makeResultBookFromParts( resAlignBook )
+
+
+    config.isSkipSanitize = True;
+    if True:
         if config.isSkipSanitize:
             joblib.dump([emb[0], emb[1], splitted_from, splitted_to], pathDump)
             emb_1, emb2, splitted_from, splitted_to = emb[0], emb[1], splitted_from, splitted_to
@@ -529,12 +547,14 @@ def AlignBook(
 
     # todo:: save all books splits in separated files in own subdirectory for improve debugging
 
+    resAlignBook = AlignBookResult()
     pathDumpResAligned = logHlp.getPathResAlignedParts()
     if not os.path.exists(pathDumpResAligned) or True:
         total_aligned_book:typing.List[AlignBookItemResult] = alignSplittedPartOfBook(book1, books_splits, hash_emb_store_1, logHlp)
         joblib.dump(total_aligned_book, pathDumpResAligned)
     else:
         total_aligned_book:typing.List[AlignBookItemResult] = joblib.load( pathDumpResAligned )
+    resAlignBook.AlignItems_ForwardDirection = total_aligned_book
 
     if config.isBidirect:
         emb2, emb_1 = (emb_1, emb2)
@@ -544,15 +564,15 @@ def AlignBook(
                                                                                                 splitted_from,
                                                                                                 splitted_to)
 
-        total_aligned_book: typing.List[AlignBookItemResult] = alignSplittedPartOfBook(book1, books_splits,
+        resAlignBook.AlignItems_BackwardDirection = alignSplittedPartOfBook(book1, books_splits,
                                                                                        hash_emb_store_1, logHlp)
 
-        makeResultBookFromParts(total_aligned_book)
+        #makeResultBookFromParts(total_aligned_book_rev)
         pass
     
     print('Save result in dump file')
-    joblib.dump(total_aligned_book, g_LogHlp.getPathDumpAllBookParts() )
-    makeResultBookFromParts( total_aligned_book )
+    joblib.dump([resAlignBook], g_LogHlp.getPathDumpAllBookParts() )
+    makeResultBookFromParts( resAlignBook )
     gLogger.printSummary()
     print("End")
     return
