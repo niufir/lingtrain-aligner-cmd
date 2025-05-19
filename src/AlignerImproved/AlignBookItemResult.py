@@ -59,6 +59,8 @@ class AlignBookResult:
     AlignItems_ForwardDirection:typing.List[AlignBookItemResult] # it field contain data for book, aligned with norma language direction
     AlignItems_BackwardDirection:typing.List[AlignBookItemResult]# it filed contain data for book, with reverse langugage direction
     def __init__(self):
+        self.AlignItems_ForwardDirection = []
+        self.AlignItems_BackwardDirection = []
         return
 
     def JoinBookParts_ForwardDir(self)->typing.List[CTextAlignItem]:

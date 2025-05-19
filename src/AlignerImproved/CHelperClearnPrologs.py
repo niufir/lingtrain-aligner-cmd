@@ -1,10 +1,13 @@
-import faiss
-import os, sys
-import joblib
+import os
+import sys
 import typing
-from tqdm import tqdm
+from collections import Counter
+import faiss
+import joblib
 import numpy as np
 from sklearn.metrics import pairwise_distances
+from tqdm import tqdm
+
 from LoggerHelper import SingletonLoggerHelper, GetSingLogger
 from src.lingtrain_aligner.Settings import GetAppSettings
 
@@ -271,7 +274,9 @@ class CHelper_CleanerTexts:
 
         # cmp_store.append([ix_process, isSameExists, len(splitted_from[ix_process]) ] )
         # print(ix_process, len(self.splitted_from))
-        res_merge = CMergingInfo(ix_process, isSameExists,len( text_corpora[ix_process] ), store_ix_dist[0][0],
+        res_merge = CMergingInfo(ix_process, isSameExists,
+                                 self.calcTextLen( text_corpora[ix_process] ),
+                                 store_ix_dist[0][0],
                                  text=text_corpora[ix_process])
         res_merge.dist_manh = store_ix_dist[0][1]
         res_merge.dist_cos = store_ix_dist_cos[0][1]
@@ -305,8 +310,12 @@ class CHelper_CleanerTexts:
             store_ix_dist_cos = [[-1,-1]]
 
         # cmp_store.append([ix_process, isSameExists, len(splitted_from[ix_process]) ] )
-        res_merge = CMergingInfo(ix_process, isSameExists, len( text_corpora[ix_process] ), store_ix_dist[0][0],
+        res_merge = CMergingInfo(ix_process,
+                                 isSameExists,
+                                 self.calcTextLen( text_corpora[ix_process] ),
+                                 store_ix_dist[0][0],
                                  text=text_corpora[ix_process])
+
         res_merge.dist_manh = store_ix_dist[0][1]
         res_merge.dist_cos = store_ix_dist_cos[0][1]
         return res_merge
@@ -333,9 +342,13 @@ class CHelper_CleanerTexts:
             res_fixed = ixres
             cmp_store = [i for i in cmp_store if i.dist_cos>-2]
             if len(cmp_store)==0: return ixres
-
+        
             for ix in range(ixres-1,max(-1, ixres-max_backward_offset),-1):
                 mask_wnd = [ i.dist_manh<GetAppSettings().DIST_EDGE_ClearPrologs*1.04 for i in cmp_store[ix:ix+wnd_backward_size]]
+                opposite_indexes =[i.indx_txt_opposite for i in cmp_store[ix:ix+wnd_backward_size]]
+                value_counts = Counter(opposite_indexes)
+                if len(value_counts)<len(mask_wnd)-3: break
+                
                 if len(mask_wnd)<3: continue;
                 # in checked window not true
                 if np.sum(mask_wnd)<2:
@@ -350,11 +363,14 @@ class CHelper_CleanerTexts:
         res_ix = -1
         cmp_store = [i for i in cmp_store if not filter_isShotSent(i)]
 
-        index_medain = np.median([ cmp_item.indx_txt_opposite for cmp_item in cmp_store if cmp_item.isSameExists])
+        index_median = np.median([cmp_item.indx_txt_opposite for cmp_item in cmp_store if cmp_item.isSameExists])
+
+        value_counts = Counter([cmp_item.indx_txt_opposite for cmp_item in cmp_store if cmp_item.isSameExists])
+
 
         for ix in range(len(cmp_store)-1):
             # delta = cmp_store[ix+1].indx_txt_opposite-cmp_store[ix].indx_txt_opposite
-            delta = index_medain - cmp_store[ix].indx_txt_opposite
+            delta = index_median - cmp_store[ix].indx_txt_opposite
             if (abs(delta)>50 )and( (cmp_store[ix].dist_manh> 17) ): # or(delta<0):
                 cmp_store[ix].isSameExists = False
 
@@ -368,9 +384,12 @@ class CHelper_CleanerTexts:
             wnd_data = wnd_data[:wnd_size]
             size_Truth_merged = np.sum( [ i.len_text for i in wnd_data if i.isSameExists ] )
             size_False_merded =  np.sum( [ i.len_text for i in wnd_data if not i.isSameExists ] )
+            value_counts = Counter([cmp_item.indx_txt_opposite for cmp_item in wnd_data if cmp_item.isSameExists])
             if size_False_merded == 0: size_False_merded = 1.0
 
             if np.sum([i.isSameExists for i in wnd_data])<wnd_size-3:
+                continue
+            elif (len(value_counts)<len(wnd_data)-3):
                 continue
             elif np.sum([i.isSameExists for i in wnd_data])<wnd_size:
                 if (not cmp_store[ix].isSameExists)and (not wnd_data_full[0].isSameExists):# first is False - skip
@@ -468,6 +487,10 @@ class CHelper_CleanerTexts:
 
         index_from_direcdt = cmp_store[ix_split].indx_txt_main
         return index_from_direcdt
+
+    def calcTextLen(self, txt)->int:
+        rl = len( txt.replace(SIGN_PARAGRAPH_MARKER,'') )
+        return rl
 
     def FindWrongPrologWrapper(self):
 

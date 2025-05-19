@@ -1,10 +1,34 @@
+import sys, os
 import typing
+import json
+from dataclasses import dataclass
+
+sys.path.append( os.path.dirname(os.path.dirname(os.path.dirname(__file__)) ) )
 
 from src.AlignerImproved.AlignBookItemResult import AlignBookResult
 from src.AlignerImproved.PayloadModels.CTextAlignItem import CTextAlignItem
 
 MARKER_VERSION_V1 = 'version_1.0'
 MARKER_VERSION_V2 = 'version_2.0'
+
+@dataclass
+class ExportData_V2:
+    version: str
+    data_forward_langs_direction: typing.List[CTextAlignItem]
+    data_backward_langs_direction: typing.List[CTextAlignItem]
+    author: typing.Optional[str]
+    title: typing.Optional[str]
+    year: typing.Optional[str]
+
+    def to_dict(self):
+        return {
+            'version': self.version,
+            'data_forward_langs_direction': self.data_forward_langs_direction,
+            'data_backward_langs_direction': self.data_backward_langs_direction,
+            'author': self.author,
+            'title': self.title,
+            'year': self.year
+        }
 
 class ExportTextsHelper:
     def __init__(self):
@@ -21,14 +45,22 @@ class ExportTextsHelper:
         return
 
     @staticmethod
-    def exportAsJson_v2(book_data:AlignBookResult, path_file:str):
-        res = {}
-        res['version'] = MARKER_VERSION_V2
-        res['data_forward_langs_direction'] = [ item.ToDict() for item in book_data.JoinBookParts_ForwardDir() ]
-        res['data_backward_langs_direction'] = [item.ToDict() for item in book_data.JoinBookParts_BackwardDir()]
-        import json
+    def exportAsJson_v2(    book_data:AlignBookResult, 
+                            path_file:str,
+                            author:str=None,
+                            title:str=None,
+                            year:str=None):
+
+        res = ExportData_V2(
+            version=MARKER_VERSION_V2,
+            data_forward_langs_direction=[item.ToDict() for item in book_data.JoinBookParts_ForwardDir()],
+            data_backward_langs_direction=[item.ToDict() for item in book_data.JoinBookParts_BackwardDir()],
+            author=author,
+            title=title,
+            year=year
+        )
         with open(path_file, "w", encoding='utf-8') as f:
-            json.dump(res, f)
+            json.dump(res.to_dict(), f)
         return
 
     @staticmethod

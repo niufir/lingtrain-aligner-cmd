@@ -1,15 +1,10 @@
 import logging
-
-import numpy as np
 import sys
-
 import os
 
-from dateparser.data.date_translation_data import bo
-
-from src.AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
-from src.lingtrain_aligner.Settings import GetAppSettings, SetDefModelName
-from src.lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
+from AlignerImproved.PayloadModels.CBookSplitSection import BookSplitSection
+from lingtrain_aligner.Settings import GetAppSettings, SetDefModelName
+from lingtrain_aligner.HelperParagraphSpliter import HelperParagraphSpliter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -415,16 +410,18 @@ def AddDistancesToAlignItems(emb_store, res_aligns):
     return res_aligns
 
 
-def makeResultBookFromParts(data:AlignBookResult):
+def makeResultBookFromParts(data:AlignBookResult, config:ConfigAlignBook):
     if not data:
         data = joblib.load(g_LogHlp.getPathDumpAllBookParts())
     assert isinstance(data,AlignBookResult), f'Current type {type(data)} is not AlignBookResult'
     assert isinstance(data.AlignItems_ForwardDirection[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
-    assert isinstance(data.AlignItems_BackwardDirection[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
+    if data.AlignItems_BackwardDirection:
+        assert isinstance(data.AlignItems_BackwardDirection[0],AlignBookItemResult), f'Current type {type(data)} is not AlignBookItemResult'
     cumul_book = []
     book_cfg = makeBookConfig()
     print('Save result to file: ', book_cfg.pathFileOut)
-    ExportTextsHelper.exportAsJson_v2(data, g_LogHlp.getOutJsonFilePathFromOrig(book_cfg.pathFileOut)  )
+    ExportTextsHelper.exportAsJson_v2(data, g_LogHlp.getOutJsonFilePathFromOrig(book_cfg.pathFileOut),
+                                      author= config.author, title=config.title, year=config.year  )
     ExportTextsHelper.save_aligng3file(cumul_book, book_cfg.pathFileOut)
 
 
@@ -504,11 +501,11 @@ def AlignBook(
 
 
     # todo: remove
-    resAlignBook = joblib.load( g_LogHlp.getPathDumpAllBookParts() )[0]
-    makeResultBookFromParts( resAlignBook )
+    # resAlignBook = joblib.load( g_LogHlp.getPathDumpAllBookParts() )[0]
+    # makeResultBookFromParts( resAlignBook )
 
 
-    config.isSkipSanitize = True;
+    #config.isSkipSanitize = True;
     if True:
         if config.isSkipSanitize:
             joblib.dump([emb[0], emb[1], splitted_from, splitted_to], pathDump)
@@ -567,12 +564,11 @@ def AlignBook(
         resAlignBook.AlignItems_BackwardDirection = alignSplittedPartOfBook(book1, books_splits,
                                                                                        hash_emb_store_1, logHlp)
 
-        #makeResultBookFromParts(total_aligned_book_rev)
         pass
     
     print('Save result in dump file')
     joblib.dump([resAlignBook], g_LogHlp.getPathDumpAllBookParts() )
-    makeResultBookFromParts( resAlignBook )
+    makeResultBookFromParts( resAlignBook, config=config )
     gLogger.printSummary()
     print("End")
     return

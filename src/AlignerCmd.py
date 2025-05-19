@@ -90,6 +90,18 @@ class CCmdTool:
                             help='The path to the output book file.')
         parser.add_argument('--pathHomeDir', type=str, required=False,
                             help='The path home dir.')
+        parser.add_argument('--author', type=str, required=False,
+                            help='Author name of the book')
+        parser.add_argument('--title', type=str, required=False,
+                            help='Title of the book')
+        parser.add_argument('--year', type=str, required=False,
+                            help='Year of the book')
+        parser.add_argument('--language-from', type=str, required=False,
+                            help='Language of the book')
+        parser.add_argument('--language-to', type=str, required=False,
+                            help='Language of the book')
+
+
         parser.add_argument('--model-name', type=str, required=False,
                             help='Support models:"sentence_transformer_multilingual", "sentence_transformer_multilingual_labse", "sonar"')
 
@@ -107,6 +119,9 @@ class CCmdTool:
                                 output_book_path, 
                                 args.isSkipSanitizing,
                                 model_name=args.model_name,
+                                author=args.author,
+                                title=args.title,
+                                year=args.year,
                                 isBidirect=args.bidirect_book)
         return conf
 

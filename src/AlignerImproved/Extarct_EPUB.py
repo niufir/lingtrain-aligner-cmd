@@ -1,4 +1,7 @@
+import re
+
 import ebooklib
+import fitz
 import numpy as np
 import typing
 import os

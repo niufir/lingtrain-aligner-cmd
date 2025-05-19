@@ -17,12 +17,20 @@ class ConfigAlignBook:
     IsTestMode:bool = False
     isBidirect:bool = False
     modelName:str = None
+    author:str = None
+    title:str = None
+    year:str = None
+
 
     def __init__(self, source_book_path, dest_book_path, output_book_path,
                  isSkipSanitize:bool=False,
                  isTestMode:bool=False,
                  isBidirect:bool=False,
-                 model_name:str=None,):
+                 model_name:str=None,
+                 author:str=None,
+                 title:str=None,
+                 year:str=None):
+                
         self.source_book_path = source_book_path
         self.dest_book_path = dest_book_path
         self.output_book_path = output_book_path
@@ -34,6 +42,9 @@ class ConfigAlignBook:
         self.isSkipSanitize = isSkipSanitize
         self.isBidirect = isBidirect
         self.modelName = model_name
+        self.author = author
+        self.title = title
+        self.year = year
         return
     
     def setTestMode(self):
