@@ -19,6 +19,9 @@ class ExportData_V2:
     author: typing.Optional[str]
     title: typing.Optional[str]
     year: typing.Optional[str]
+    lang_from: typing.Optional[str]
+    lang_to: typing.Optional[str]
+
 
     def to_dict(self):
         return {
@@ -27,7 +30,9 @@ class ExportData_V2:
             'data_backward_langs_direction': self.data_backward_langs_direction,
             'author': self.author,
             'title': self.title,
-            'year': self.year
+            'year': self.year,
+            'lang_from': self.lang_from,
+            'lang_to': self.lang_to,
         }
 
 class ExportTextsHelper:
@@ -49,7 +54,8 @@ class ExportTextsHelper:
                             path_file:str,
                             author:str=None,
                             title:str=None,
-                            year:str=None):
+                            year:str=None,
+                            lang_from:str=None, lang_to:str=None):
 
         res = ExportData_V2(
             version=MARKER_VERSION_V2,
@@ -57,7 +63,8 @@ class ExportTextsHelper:
             data_backward_langs_direction=[item.ToDict() for item in book_data.JoinBookParts_BackwardDir()],
             author=author,
             title=title,
-            year=year
+            year=year, lang_from=lang_from, lang_to=lang_to
+
         )
         with open(path_file, "w", encoding='utf-8') as f:
             json.dump(res.to_dict(), f)

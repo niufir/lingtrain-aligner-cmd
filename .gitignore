@@ -130,4 +130,7 @@ dmypy.json
 tmp_config.py
 .idea/
 config.json
+.dump
+.lock
+**/LogAlign/
 

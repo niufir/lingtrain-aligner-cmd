@@ -421,7 +421,11 @@ def makeResultBookFromParts(data:AlignBookResult, config:ConfigAlignBook):
     book_cfg = makeBookConfig()
     print('Save result to file: ', book_cfg.pathFileOut)
     ExportTextsHelper.exportAsJson_v2(data, g_LogHlp.getOutJsonFilePathFromOrig(book_cfg.pathFileOut),
-                                      author= config.author, title=config.title, year=config.year  )
+                                      author= config.author,
+                                      title=config.title,
+                                      year=config.year,
+                                      lang_from=config.lng_src,
+                                      lang_to=config.lng_dest)
     ExportTextsHelper.save_aligng3file(cumul_book, book_cfg.pathFileOut)
 
 

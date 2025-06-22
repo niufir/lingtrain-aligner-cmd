@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import pairwise_distances
 from tqdm import tqdm
 
-from LoggerHelper import SingletonLoggerHelper, GetSingLogger
+from src.AlignerImproved.LoggerHelper import SingletonLoggerHelper, GetSingLogger
 from src.lingtrain_aligner.Settings import GetAppSettings
 
 Count_Addion_Text_Clear_Text = 100
