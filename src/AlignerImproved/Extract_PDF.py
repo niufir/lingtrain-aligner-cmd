@@ -14,11 +14,9 @@ from dataclasses import dataclass
 
 from typing import List, Tuple, Union, Optional
 
-
 import  typing
 
 import fitz  # this is pymupdf
-from websocket import WebSocket
 
 PARAGRAPH_SIGN_LABEL = '%paragraph%'
 

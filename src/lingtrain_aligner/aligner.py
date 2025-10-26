@@ -1369,10 +1369,20 @@ def getEmb4Part(text_items, res:typing.List, isShowProgress:bool=True):
     res.append(emb2)
     return emb2
 
+def isOsSupportMultiThreading()->bool:
+    import platform
+    isMultiTreading = False
+    if platform.system() != "Windows":
+        isMultiTreading = False
+    else:
+        isMultiTreading = True# Keep existing override for safety
+    return isMultiTreading
+
 def getEmbidingsAllTexts(db_path,model_name,embed_batch_size=10):
 
     g_model_nn = model_dispatcher.models[model_name]
     isMultiTreading = models_support_multithreading[model_name]
+    isMultiTreading = isMultiTreading and isOsSupportMultiThreading()
 
     splitted_from = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_from(db_path))
     splitted_to = HelperParagraphSpliter.ClearTextFromParagrapSplitter(get_splitted_to(db_path))

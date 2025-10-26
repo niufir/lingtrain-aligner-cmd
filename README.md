@@ -268,9 +268,3 @@ Extract text with custom output path:
 ```bash
 python ExtractTextCmd.py --path_file "book.pdf" --path_out "output.txt"
 ```
-
-## Return Values
-
-- On success: Returns the path to the output text file
-- On failure: Exits with status code 1 and prints error details
- e
