@@ -29,8 +29,8 @@ Main purpose of this alignment tool is to build parallel corpora using two or mo
 
 While service marks can be handled manually (the tool helps to detect them), the translation conflicts should be handled more carefully.
 
-Lingtrain Aligner tool will do almost all alignment work for you. 
-It matches the sentence pairs automatically using the multilingual machine learning models. 
+Lingtrain Aligner tool will do almost all alignment work for you.
+It matches the sentence pairs automatically using the multilingual machine learning models.
 Then it searches for the alignment conflicts and resolves them.
 
 ### Supported languages and models
@@ -71,7 +71,7 @@ The following models from the original project are currently on hold in this for
   - Significantly slower for debugging and development
 
 > **Note:** These models may be re-enabled in future releases once optimization work is complete.
-  
+
 
 ## Command Line Interface
 
@@ -216,13 +216,12 @@ The tool automatically detects the language of input files using built-in langua
 - Ensure sufficient disk space for temporary files and model downloads
 - The first run will download the selected ML model (500MB-3GB depending on the model)
 
-## Credits and License
+## Credits
 
 This project is a fork of [Lingtrain Aligner](https://github.com/averkij/lingtrain-aligner) by Sergei Averkiev.
 
 **Original Author:** Sergei Averkiev ([@averkij](https://github.com/averkij))
 **Original Repository:** https://github.com/averkij/lingtrain-aligner
-**License:** GNU General Public License v3 (GPLv3)
 
 ### Command-Line Fork Enhancements
 
@@ -263,3 +262,8 @@ Extract text with custom output path:
 ```bash
 python ExtractTextCmd.py --path_file "book.pdf" --path_out "output.txt"
 ```
+
+
+## License
+
+This project is licensed under the GNU General Public License v3 (GPLv3). See the [LICENSE](LICENSE) file for more details.
