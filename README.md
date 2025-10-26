@@ -17,7 +17,6 @@ This command-line edition extends the original Lingtrain Aligner with:
 - ✅ **Smart Text Sanitization** - Automatically detects and removes non-equivalent text sections (such as introductions, forewords, and afterwords that differ between editions). Works effectively in approximately 80% of cases
 - ✅ **Bidirectional Processing** - Optional bidirectional alignment mode
 - ✅ **JSON Output Format** - Export aligned texts in JSON format with bidirectional mappings in a single file for easy integration with other tools and applications
-- ✅ **Enhanced Language Detection** - Automatic language detection with manual override options
 - ✅ **Metadata Support** - Add author, title, and year information to aligned books
 - ✅ **Batch Processing Ready** - Designed for scripting and automation workflows
 
@@ -28,19 +27,11 @@ Main purpose of this alignment tool is to build parallel corpora using two or mo
 
 ## Process
 
-There are plenty of obstacles during the alignment process:
-
-- The translator could translate several sentences as one.
-- The translator could translate one sentence as many.
-- There are some service marks in the text
-    - Page numbers
-    - Chapters and other section headings
-    - Author and title information
-    - Notes
-
 While service marks can be handled manually (the tool helps to detect them), the translation conflicts should be handled more carefully.
 
-Lingtrain Aligner tool will do almost all alignment work for you. It matches the sentence pairs automatically using the multilingual machine learning models. Then it searches for the alignment conflicts and resolves them. As output you will have the parallel corpora either as two distinct plain text files or as the merged corpora in widely used TMX format.
+Lingtrain Aligner tool will do almost all alignment work for you. 
+It matches the sentence pairs automatically using the multilingual machine learning models. 
+Then it searches for the alignment conflicts and resolves them.
 
 ### Supported languages and models
 
@@ -88,14 +79,36 @@ The Lingtrain Aligner provides a powerful command line interface for processing 
 
 ### Installation
 
+You can set up the project using a Conda environment for your operating system.
+
+#### Ubuntu (Conda)
+
 ```bash
 # Clone the repository
 git clone https://github.com/niufir/lingtrain-aligner-cmd
 cd lingtrain-aligner-cmd
 
-# Install dependencies
-pip install -r requirements.txt
+# Create and activate the environment
+conda env create -f environment_ubuntu.yml
+conda activate aligner_cmd
 ```
+
+#### Windows (Conda)
+
+```powershell
+# Clone the repository
+git clone https://github.com/niufir/lingtrain-aligner-cmd
+cd lingtrain-aligner-cmd
+
+# Create and activate the environment
+conda env create -f environment_win.yml
+conda activate aligner_cmd
+```
+
+Notes:
+- Miniconda or Anaconda is required for the commands above.
+- The environment name is `aligner_cmd` (defined in the YAML files).
+- First run will download ML models on demand (500MB+).
 
 ### Basic Usage
 
@@ -232,24 +245,6 @@ ExtractTextCmd is a command-line tool for extracting plain text from various boo
 - PDF (.pdf)
 - HTML (.html)
 - Text (.txt)
-
-## Installation
-
-Ensure you have Python 3.x installed and all required dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Command Line Interface
-
-Basic usage:
-
-```bash
-python ExtractTextCmd.py --path_file <input_file_path> [--path_out <output_file_path>]
-```
 
 ### Arguments
 
