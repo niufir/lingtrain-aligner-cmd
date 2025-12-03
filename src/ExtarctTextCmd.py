@@ -65,6 +65,7 @@ class ExtractTextCmd:
         
         try:
             # Extract text based on file type
+            print("File ext = ", ext)
             if ext == 'epub':
                 ReadEpub(args.path_file, args.path_out)
             elif ext == 'fb2':

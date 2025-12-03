@@ -186,6 +186,7 @@ class FB2_Reader:
         sentence_endings = ['.', '!', '?']
         for ix in range(1,len(texts)-1):
             next_line = texts[ix+1]
+            if not next_line:continue;
             if next_line[0] == '\t':
                 if texts[ix][-1] not in sentence_endings:
                     texts[ix] += '. '
